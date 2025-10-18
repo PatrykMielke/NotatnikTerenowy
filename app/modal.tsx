@@ -1,6 +1,8 @@
 // app/modal.tsx
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Crypto from "expo-crypto";
 import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -11,36 +13,68 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
+  Text,
   TextInput,
   View,
 } from "react-native";
+
+interface LocationCoords {
+  latitude: number;
+  longitude: number;
+}
 
 export default function ModalScreen() {
   const [image, setImage] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [location, setLocation] = useState<LocationCoords | null>(null);
   const router = useRouter(); // Hook do nawigacji, aby zamknąć modal
 
+  const getLocation = async () => {
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Brak uprawnień",
+        "Potrzebujemy dostępu do lokalizacji, aby zapisać pozycję notatki."
+      );
+      return;
+    }
+
+    try {
+      let currentLocation = await Location.getCurrentPositionAsync({});
+      setLocation(currentLocation.coords);
+      Alert.alert(
+        "Lokalizacja pobrana!",
+        "Twoje współrzędne zostały zapisane."
+      );
+    } catch (error) {
+      Alert.alert(
+        "Błąd lokalizacji",
+        "Nie udało się pobrać lokalizacji. Spróbuj ponownie."
+      );
+      console.log(error);
+    }
+  };
+
   const pickImage = async () => {
-    // ... (ta funkcja pozostaje bez zmian)
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
       Alert.alert("Brak uprawnień", "Potrzebujemy dostępu do Twojej galerii.");
       return;
     }
     let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ["images"],
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
     });
     if (!result.canceled) {
       setImage(result.assets[0].uri);
+      await getLocation();
     }
   };
 
   const takePhoto = async () => {
-    // ... (ta funkcja pozostaje bez zmian)
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
       Alert.alert("Brak uprawnień", "Potrzebujemy dostępu do aparatu.");
@@ -53,10 +87,10 @@ export default function ModalScreen() {
     });
     if (!result.canceled) {
       setImage(result.assets[0].uri);
+      await getLocation();
     }
   };
 
-  // NOWA FUNKCJA: Zapisywanie notatki
   const handleSaveNote = async () => {
     if (!image || !title) {
       Alert.alert("Błąd", "Zdjęcie i tytuł są wymagane!");
@@ -64,29 +98,26 @@ export default function ModalScreen() {
     }
 
     try {
-      // 1. Stwórz nową notatkę
       const newNote = {
-        id: Date.now().toString(), // Prosty, unikalny ID
+        id: Crypto.randomUUID(),
         title,
         description,
         image,
         date: new Date().toISOString(),
+        location: location,
       };
 
-      // 2. Pobierz istniejące notatki
       const existingNotesRaw = await AsyncStorage.getItem("notes");
       const existingNotes = existingNotesRaw
         ? JSON.parse(existingNotesRaw)
         : [];
 
-      // 3. Dodaj nową notatkę do listy
       const updatedNotes = [...existingNotes, newNote];
 
-      // 4. Zapisz zaktualizowaną listę w AsyncStorage
       await AsyncStorage.setItem("notes", JSON.stringify(updatedNotes));
 
       Alert.alert("Sukces!", "Notatka została zapisana.");
-      router.back(); // Wróć do ekranu głównego
+      router.back();
     } catch (e) {
       console.error(e);
       Alert.alert("Błąd", "Nie udało się zapisać notatki.");
@@ -115,6 +146,13 @@ export default function ModalScreen() {
           <View style={{ marginVertical: 5 }} />
           <Button title="Zrób zdjęcie" onPress={takePhoto} />
         </View>
+
+        {location && (
+          <Text style={styles.locationText}>
+            Lokalizacja: {location.latitude.toFixed(4)},{" "}
+            {location.longitude.toFixed(4)}
+          </Text>
+        )}
 
         <TextInput
           value={title}
@@ -187,5 +225,11 @@ const styles = StyleSheet.create({
   saveButton: {
     width: "100%",
     marginTop: 20,
+  },
+  locationText: {
+    fontSize: 14,
+    color: "gray",
+    marginTop: 15,
+    fontStyle: "italic",
   },
 });

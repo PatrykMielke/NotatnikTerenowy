@@ -1,6 +1,5 @@
-// app/(tabs)/index.tsx
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Stack, useFocusEffect } from "expo-router";
+import { Link, Stack, useFocusEffect } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
   FlatList,
@@ -51,10 +50,15 @@ export default function HomeScreen() {
           )} // Sortowanie od najnowszych
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <Pressable style={styles.noteItem}>
-              <Image source={{ uri: item.image }} style={styles.noteImage} />
-              <Text style={styles.noteTitle}>{item.title}</Text>
-            </Pressable>
+            <Link
+              href={{ pathname: "/note/[id]", params: { id: item.id } }}
+              asChild
+            >
+              <Pressable style={styles.noteItem}>
+                <Image source={{ uri: item.image }} style={styles.noteImage} />
+                <Text style={styles.noteTitle}>{item.title}</Text>
+              </Pressable>
+            </Link>
           )}
         />
       ) : (
@@ -72,7 +76,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f4f6f8",
   },
   noteItem: {
     backgroundColor: "white",
@@ -106,7 +109,6 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#555",
   },
   emptySubText: {
     fontSize: 16,

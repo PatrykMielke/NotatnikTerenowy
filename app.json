@@ -45,6 +45,13 @@
           "photosPermission": "Aplikacja potrzebuje dostępu do Twoich zdjęć, abyś mógł je dodać do notatki.",
           "cameraPermission": "Aplikacja potrzebuje dostępu do aparatu, abyś mógł zrobić zdjęcie do notatki."
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Aplikacja potrzebuje dostępu do Twojej lokalizacji, aby dodać dane lokalizacyjne do notatki.",
+          "locationWhenInUsePermission": "Aplikacja potrzebuje dostępu do Twojej lokalizacji, aby dodać dane lokalizacyjne do notatki."
+        }
       ]
     ],
     "experiments": {

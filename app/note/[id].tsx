@@ -3,8 +3,12 @@ import { Stack, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
+  Button,
   Image,
+  Linking,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   View,
@@ -48,6 +52,40 @@ export default function NoteDetailsScreen() {
   if (loading) {
     return <ActivityIndicator size="large" style={styles.centered} />;
   }
+  const shareNote = async () => {
+    if (!note) return;
+    try {
+      let message = `Sprawdź moją notatkę: "${note.title}"`;
+      if (note.location) {
+        message += `\n\nLokalizacja: https://www.google.com/maps?q=${note.location.latitude},${note.location.longitude}`;
+      }
+      await Share.share({
+        message: message,
+        title: note.title,
+      });
+    } catch (error) {
+      Alert.alert("Błąd", "Nie udało się udostępnić notatki.");
+    }
+  };
+
+  const makePhoneCall = () => {
+    // Numer telefonu, który można przenieść do ustawień
+    const phoneNumber = "112";
+    const url = `tel:${phoneNumber}`;
+
+    Linking.canOpenURL(url)
+      .then((supported) => {
+        if (!supported) {
+          Alert.alert(
+            "Błąd",
+            "Wykonywanie połączeń nie jest wspierane na tym urządzeniu."
+          );
+        } else {
+          return Linking.openURL(url);
+        }
+      })
+      .catch((err) => console.error("Wystąpił błąd", err));
+  };
 
   if (!note) {
     return (
@@ -80,6 +118,15 @@ export default function NoteDetailsScreen() {
             </Text>
           </View>
         ) : null}
+        <View style={styles.actionsContainer}>
+          <Button title="Udostępnij notatkę" onPress={shareNote} />
+          <View style={{ marginVertical: 8 }} />
+          <Button
+            title="Zadzwoń i zgłoś (112)"
+            onPress={makePhoneCall}
+            color="#c41c1c"
+          />
+        </View>
       </View>
     </ScrollView>
   );
@@ -131,5 +178,11 @@ const styles = StyleSheet.create({
   locationText: {
     fontSize: 15,
     color: "#333",
+  },
+  actionsContainer: {
+    marginTop: 25,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
   },
 });

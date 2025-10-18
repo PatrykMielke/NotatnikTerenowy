@@ -38,6 +38,13 @@
             "backgroundColor": "#000000"
           }
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Aplikacja potrzebuje dostępu do Twoich zdjęć, abyś mógł je dodać do notatki.",
+          "cameraPermission": "Aplikacja potrzebuje dostępu do aparatu, abyś mógł zrobić zdjęcie do notatki."
+        }
       ]
     ],
     "experiments": {

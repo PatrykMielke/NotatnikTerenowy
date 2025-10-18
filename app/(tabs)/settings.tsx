@@ -1,13 +1,12 @@
+import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-export default function HomeScreen() {
+export default function SettingsScreen() {
   return (
     <View style={styles.container}>
-      {/* Ten komponent pozwala nam modyfikować nagłówek tego konkretnego ekranu */}
-
-      <Text style={styles.title}>Twoje Notatki</Text>
+      <Text style={styles.title}>Ustawienia</Text>
       <Text style={styles.subtitle}>
-        Tu pojawi się lista Twoich notatek terenowych.
+        W tym miejscu będzie można skonfigurować aplikację.
       </Text>
     </View>
   );
@@ -18,7 +17,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    padding: 20,
   },
   title: {
     fontSize: 22,

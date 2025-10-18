@@ -1,14 +1,70 @@
-import { StyleSheet, Text, View } from "react-native";
+// app/(tabs)/index.tsx
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Stack, useFocusEffect } from "expo-router";
+import React, { useCallback, useState } from "react";
+import {
+  FlatList,
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+
+interface Note {
+  id: string;
+  title: string;
+  image: string;
+  date: string;
+}
 
 export default function HomeScreen() {
+  const [notes, setNotes] = useState<Note[]>([]);
+
+  const loadNotes = async () => {
+    try {
+      const notesJson = await AsyncStorage.getItem("notes");
+      if (notesJson) {
+        setNotes(JSON.parse(notesJson));
+      }
+    } catch (e) {
+      console.error("Failed to load notes.", e);
+    }
+  };
+
+  // Używamy useFocusEffect, aby dane odświeżały się za każdym razem, gdy wracamy na ten ekran (np. po zapisaniu nowej notatki).
+  useFocusEffect(
+    useCallback(() => {
+      loadNotes();
+    }, [])
+  );
+
   return (
     <View style={styles.container}>
-      {/* Ten komponent pozwala nam modyfikować nagłówek tego konkretnego ekranu */}
+      {/* Konfiguracja nagłówka pozostaje bez zmian */}
+      <Stack.Screen options={{ title: "Notatnik Terenowy" }} />
 
-      <Text style={styles.title}>Twoje Notatki</Text>
-      <Text style={styles.subtitle}>
-        Tu pojawi się lista Twoich notatek terenowych.
-      </Text>
+      {notes.length > 0 ? (
+        <FlatList
+          data={notes.sort(
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+          )} // Sortowanie od najnowszych
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <Pressable style={styles.noteItem}>
+              <Image source={{ uri: item.image }} style={styles.noteImage} />
+              <Text style={styles.noteTitle}>{item.title}</Text>
+            </Pressable>
+          )}
+        />
+      ) : (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>Brak notatek</Text>
+          <Text style={styles.emptySubText}>
+            Naciśnij +, aby dodać pierwszą notatkę.
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -16,17 +72,45 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#f4f6f8",
+  },
+  noteItem: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 15,
+    marginVertical: 8,
+    marginHorizontal: 16,
+    flexDirection: "row",
     alignItems: "center",
+    elevation: 2, // Cień na Androidzie
+    shadowColor: "#000", // Cień na iOS
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.22,
+    shadowRadius: 2.22,
+  },
+  noteImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 15,
+  },
+  noteTitle: {
+    fontSize: 18,
+    fontWeight: "500",
+  },
+  emptyContainer: {
+    flex: 1,
     justifyContent: "center",
-    padding: 20,
+    alignItems: "center",
   },
-  title: {
-    fontSize: 22,
+  emptyText: {
+    fontSize: 20,
     fontWeight: "bold",
-    marginBottom: 8,
+    color: "#555",
   },
-  subtitle: {
+  emptySubText: {
     fontSize: 16,
     color: "gray",
+    marginTop: 8,
   },
 });

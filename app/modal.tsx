@@ -13,13 +13,17 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   View,
+  useColorScheme,
 } from "react-native";
+import { createGlobalStyles } from "../styles/globalStyles";
 
 export default function ModalScreen() {
+  const colorScheme = useColorScheme();
+  const styles = createGlobalStyles(colorScheme);
+
   const [image, setImage] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -125,7 +129,7 @@ export default function ModalScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1 }}
     >
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={styles.containerNote}>
         {image ? (
           <Image source={{ uri: image }} style={styles.image} />
         ) : (
@@ -137,7 +141,7 @@ export default function ModalScreen() {
           </View>
         )}
 
-        <View style={styles.buttonsContainer}>
+        <View style={styles.buttonContainer}>
           <Button title="Wybierz zdjęcie z galerii" onPress={pickImage} />
           <View style={{ marginVertical: 5 }} />
           <Button title="Zrób zdjęcie" onPress={takePhoto} />
@@ -154,78 +158,22 @@ export default function ModalScreen() {
           value={title}
           onChangeText={setTitle}
           placeholder="Wpisz tytuł notatki..."
+          placeholderTextColor={styles.input.color}
           style={styles.input}
         />
         <TextInput
           value={description}
           onChangeText={setDescription}
           placeholder="Dodaj opis (opcjonalnie)..."
+          placeholderTextColor={styles.input.color}
           style={[styles.input, styles.textArea]}
           multiline
         />
 
-        <View style={styles.saveButton}>
+        <View style={styles.buttonContainer}>
           <Button title="Zapisz notatkę" onPress={handleSaveNote} />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    alignItems: "center",
-    padding: 20,
-    paddingBottom: 50,
-  },
-  buttonsContainer: {
-    width: "100%",
-    marginTop: 20,
-  },
-  image: {
-    width: "100%",
-    aspectRatio: 4 / 3,
-    borderRadius: 10,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: "#ddd",
-  },
-  imagePlaceholder: {
-    width: "100%",
-    aspectRatio: 4 / 3,
-    borderRadius: 10,
-    backgroundColor: "#f0f0f0",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  placeholderIcon: {
-    width: 80,
-    height: 80,
-    opacity: 0.5,
-  },
-  input: {
-    width: "100%",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 15,
-    fontSize: 16,
-  },
-  textArea: {
-    minHeight: 100,
-    textAlignVertical: "top",
-  },
-  saveButton: {
-    width: "100%",
-    marginTop: 20,
-  },
-  locationText: {
-    fontSize: 14,
-    color: "gray",
-    marginTop: 15,
-    fontStyle: "italic",
-  },
-});

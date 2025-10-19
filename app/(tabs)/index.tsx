@@ -1,3 +1,4 @@
+import { createGlobalStyles } from "@/styles/globalStyles";
 import { NotePreview } from "@/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Link, Stack, useFocusEffect } from "expo-router";
@@ -6,12 +7,14 @@ import {
   FlatList,
   Image,
   Pressable,
-  StyleSheet,
   Text,
   View,
+  useColorScheme,
 } from "react-native";
 
 export default function HomeScreen() {
+  const colorScheme = useColorScheme();
+  const styles = createGlobalStyles(colorScheme);
   const [notes, setNotes] = useState<NotePreview[]>([]);
 
   const loadNotes = async () => {
@@ -48,17 +51,17 @@ export default function HomeScreen() {
               href={{ pathname: "/note/[id]", params: { id: item.id } }}
               asChild
             >
-              <Pressable style={styles.noteItem}>
+              <Pressable style={styles.item}>
                 <Image source={{ uri: item.image }} style={styles.noteImage} />
-                <Text style={styles.noteTitle}>{item.title}</Text>
+                <Text style={styles.title}>{item.title}</Text>
               </Pressable>
             </Link>
           )}
         />
       ) : (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Brak notatek</Text>
-          <Text style={styles.emptySubText}>
+          <Text style={styles.title}>Brak notatek</Text>
+          <Text style={styles.info}>
             Naciśnij +, aby dodać pierwszą notatkę.
           </Text>
         </View>
@@ -66,47 +69,3 @@ export default function HomeScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  noteItem: {
-    backgroundColor: "white",
-    borderRadius: 10,
-    padding: 15,
-    marginVertical: 8,
-    marginHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    elevation: 2, // Cień na Androidzie
-    shadowColor: "#000", // Cień na iOS
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.22,
-    shadowRadius: 2.22,
-  },
-  noteImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
-    marginRight: 15,
-  },
-  noteTitle: {
-    fontSize: 18,
-    fontWeight: "500",
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  emptyText: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  emptySubText: {
-    fontSize: 16,
-    color: "gray",
-    marginTop: 8,
-  },
-});

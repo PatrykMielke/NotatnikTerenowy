@@ -1,16 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useState } from "react";
 import { Alert, Linking } from "react-native";
 
 const makePhoneCall = async () => {
-  const [phoneNumber, setPhoneNumber] = useState("");
-
-  const savedPhone = await AsyncStorage.getItem("settings_phone");
-  if (savedPhone) setPhoneNumber(savedPhone);
-
-  const url = `tel:${phoneNumber}`;
-
   try {
+    const phoneNumber = await AsyncStorage.getItem("settings_phone_number");
+    const url = `tel:${phoneNumber}`;
     await Linking.openURL(url);
   } catch (error) {
     Alert.alert(

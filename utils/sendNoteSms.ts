@@ -14,7 +14,7 @@ const sendSms = async (note: Note) => {
   }
 
   try {
-    const phoneNumber = await AsyncStorage.getItem("settings_phone");
+    const phoneNumber = await AsyncStorage.getItem("settings_sms_number");
     const messageTemplate = await AsyncStorage.getItem("settings_sms_message");
 
     if (!phoneNumber) {

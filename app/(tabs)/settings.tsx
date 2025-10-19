@@ -1,3 +1,4 @@
+import { createGlobalStyles } from "@/styles/globalStyles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "expo-router";
 import React, { useState } from "react";
@@ -6,23 +7,33 @@ import {
   Button,
   KeyboardAvoidingView,
   Platform,
-  StyleSheet,
   Text,
   TextInput,
+  useColorScheme,
   View,
 } from "react-native";
 
 export default function SettingsScreen() {
+  const colorScheme = useColorScheme();
+  const styles = createGlobalStyles(colorScheme);
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [smsNumber, setSMSNumber] = useState("");
   const [smsMessage, setSmsMessage] = useState("");
 
   // Wczytaj zapisane ustawienia za każdym razem, gdy ekran jest aktywny
   useFocusEffect(
     React.useCallback(() => {
       const loadSettings = async () => {
-        const savedPhone = await AsyncStorage.getItem("settings_phone");
+        const savedPhoneNumber = await AsyncStorage.getItem(
+          "settings_phone_number"
+        );
+        const savedSMSNumber = await AsyncStorage.getItem(
+          "settings_sms_number"
+        );
         const savedMessage = await AsyncStorage.getItem("settings_sms_message");
-        if (savedPhone) setPhoneNumber(savedPhone);
+
+        if (savedPhoneNumber) setPhoneNumber(savedPhoneNumber);
+        if (savedSMSNumber) setSMSNumber(savedSMSNumber);
         if (savedMessage) setSmsMessage(savedMessage);
       };
       loadSettings();
@@ -31,7 +42,8 @@ export default function SettingsScreen() {
 
   const handleSaveSettings = async () => {
     try {
-      await AsyncStorage.setItem("settings_phone", phoneNumber);
+      await AsyncStorage.setItem("settings_phone_number", phoneNumber);
+      await AsyncStorage.setItem("settings_sms_number", smsNumber);
       await AsyncStorage.setItem("settings_sms_message", smsMessage);
       Alert.alert("Sukces", "Ustawienia zostały zapisane.");
     } catch (e) {
@@ -44,69 +56,44 @@ export default function SettingsScreen() {
     <KeyboardAvoidingView
       contentContainerStyle={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
-      style={{ flex: 1 }}
+      style={styles.container}
     >
-      <Text style={styles.title}>Ustawienia SMS</Text>
-      <Text style={styles.label}>Domyślny numer telefonu</Text>
-      <TextInput
-        style={styles.input}
-        value={phoneNumber}
-        onChangeText={setPhoneNumber}
-        placeholder="np. 112"
-        keyboardType="phone-pad"
-      />
+      <View
+        style={{ flex: 1, width: "100%", paddingLeft: 16, paddingRight: 16 }}
+      >
+        <Text style={styles.label}>Domyślny numer telefonu do SMS:</Text>
+        <TextInput
+          style={styles.input}
+          value={smsNumber}
+          onChangeText={setSMSNumber}
+          placeholder="np. 112"
+          keyboardType="phone-pad"
+          placeholderTextColor={styles.input.color}
+        />
 
-      <Text style={styles.label}>Domyślna treść wiadomości</Text>
-      <TextInput
-        style={styles.input}
-        value={smsMessage}
-        onChangeText={setSmsMessage}
-        placeholder="np. Zgłaszam problem w lokalizacji: {lokalizacja}"
-        multiline
-      />
-      <Text style={styles.info}>
-        Możesz użyć zmiennej {"{lokalizacja}"}, która zostanie automatycznie
-        podmieniona na współrzędne z notatki.
-      </Text>
+        <Text style={styles.label}>Domyślny numer telefonu do rozmów:</Text>
+        <TextInput
+          style={styles.input}
+          value={phoneNumber}
+          onChangeText={setPhoneNumber}
+          placeholder="np. 112"
+          placeholderTextColor={styles.input.color}
+          keyboardType="phone-pad"
+        />
 
-      <View style={styles.buttonContainer}>
-        <Button title="Zapisz ustawienia" onPress={handleSaveSettings} />
+        <Text style={styles.label}>Domyślna treść wiadomości:</Text>
+        <TextInput
+          style={styles.input}
+          value={smsMessage}
+          onChangeText={setSmsMessage}
+          placeholder="np. Zgłaszam problem odnośnie..."
+          placeholderTextColor={styles.input.color}
+          multiline
+        />
+        <View style={styles.buttonContainer}>
+          <Button title="Zapisz ustawienia" onPress={handleSaveSettings} />
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    padding: 20,
-    backgroundColor: "#fff",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "500",
-    marginTop: 15,
-    marginBottom: 5,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: "#f9f9f9",
-  },
-  info: {
-    fontSize: 12,
-    color: "gray",
-    marginTop: 5,
-  },
-  buttonContainer: {
-    marginTop: 30,
-  },
-});

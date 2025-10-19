@@ -1,3 +1,4 @@
+import { createGlobalStyles } from "@/styles/globalStyles";
 import { Note } from "@/types";
 import makePhoneCall from "@/utils/makePhoneCall";
 import sendSms from "@/utils/sendNoteSms";
@@ -10,14 +11,17 @@ import {
   Button,
   Image,
   ScrollView,
-  StyleSheet,
   Text,
   View,
+  useColorScheme,
 } from "react-native";
+
 export default function NoteDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [note, setNote] = useState<Note | null>(null);
   const [loading, setLoading] = useState(true);
+  const colorScheme = useColorScheme();
+  const styles = createGlobalStyles(colorScheme);
 
   const handleSendSms = async () => {
     await sendSms(note!);
@@ -69,11 +73,14 @@ export default function NoteDetailsScreen() {
           {new Date(note.date).toLocaleString("pl-PL")}
         </Text>
         {note.description ? (
-          <Text style={styles.description}>{note.description}</Text>
+          <View style={styles.noteDetailsContainer}>
+            <Text style={styles.label}>Opis:</Text>
+            <Text style={styles.text}>{note.description}</Text>
+          </View>
         ) : null}
         {note.location ? (
-          <View style={styles.locationContainer}>
-            <Text style={styles.locationLabel}>Lokalizacja:</Text>
+          <View style={styles.noteDetailsContainer}>
+            <Text style={styles.label}>Lokalizacja:</Text>
             <Text style={styles.locationText}>
               Szerokość: {note.location.latitude.toFixed(5)}
             </Text>
@@ -102,58 +109,3 @@ export default function NoteDetailsScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  centered: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  image: {
-    width: "100%",
-    aspectRatio: 4 / 3,
-  },
-  contentContainer: {
-    padding: 20,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
-  date: {
-    fontSize: 14,
-    color: "gray",
-    marginBottom: 20,
-  },
-  description: {
-    fontSize: 17,
-    lineHeight: 24,
-    marginBottom: 20,
-  },
-  locationContainer: {
-    marginTop: 10,
-    padding: 15,
-    backgroundColor: "#f4f6f8",
-    borderRadius: 8,
-  },
-  locationLabel: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
-  locationText: {
-    fontSize: 15,
-    color: "#333",
-  },
-  actionsContainer: {
-    marginTop: 25,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
-  },
-});

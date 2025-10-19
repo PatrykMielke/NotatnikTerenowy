@@ -61,7 +61,9 @@ export default function SettingsScreen() {
       <View
         style={{ flex: 1, width: "100%", paddingLeft: 16, paddingRight: 16 }}
       >
-        <Text style={styles.label}>Domyślny numer telefonu do SMS:</Text>
+        <Text style={[styles.label, { marginTop: 15 }]}>
+          Domyślny numer telefonu do SMS:
+        </Text>
         <TextInput
           style={styles.input}
           value={smsNumber}
@@ -71,7 +73,9 @@ export default function SettingsScreen() {
           placeholderTextColor={styles.input.color}
         />
 
-        <Text style={styles.label}>Domyślny numer telefonu do rozmów:</Text>
+        <Text style={[styles.label, { marginTop: 15 }]}>
+          Domyślny numer telefonu do rozmów:
+        </Text>
         <TextInput
           style={styles.input}
           value={phoneNumber}
@@ -81,7 +85,9 @@ export default function SettingsScreen() {
           keyboardType="phone-pad"
         />
 
-        <Text style={styles.label}>Domyślna treść wiadomości:</Text>
+        <Text style={[styles.label, { marginTop: 15 }]}>
+          Domyślna treść wiadomości:
+        </Text>
         <TextInput
           style={styles.input}
           value={smsMessage}

@@ -3,7 +3,14 @@ import { Alert, Share } from "react-native";
 const shareNote = async (note: Note) => {
   if (!note) return;
   try {
-    let message = `Sprawdź moją notatkę: "${note.title}" z dnia ${note.date}`;
+    const formattedDate = new Date(note.date).toLocaleString("pl-PL", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    let message = `Sprawdź moją notatkę: "${note.title}" z dnia ${formattedDate}`;
 
     if (note.description) {
       message += `\n\n${note.description}`;

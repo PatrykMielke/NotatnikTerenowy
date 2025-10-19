@@ -93,17 +93,9 @@ export default function NoteDetailsScreen() {
           <Button title="Udostępnij notatkę" onPress={handleShareNote} />
 
           <View style={{ marginVertical: 8 }} />
-          <Button
-            title="Wyślij zgłoszenie SMS"
-            onPress={handleSendSms}
-            color="#ff8c00"
-          />
+          <Button title="Wyślij SMS" onPress={handleSendSms} color="#ff8c00" />
           <View style={{ marginVertical: 8 }} />
-          <Button
-            title="Zadzwoń i zgłoś (112)"
-            onPress={handlePhoneCall}
-            color="#c41c1c"
-          />
+          <Button title="Zadzwoń" onPress={handlePhoneCall} color="#c41c1c" />
         </View>
       </View>
     </ScrollView>

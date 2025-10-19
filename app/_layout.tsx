@@ -1,3 +1,4 @@
+import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { FontAwesome } from "@expo/vector-icons";
 import {
@@ -34,7 +35,7 @@ export default function RootLayout() {
                     <FontAwesome
                       name="plus-square"
                       size={25}
-                      color="#0055a5"
+                      color={Colors[colorScheme ?? "light"].tint}
                       style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
                     />
                   )}

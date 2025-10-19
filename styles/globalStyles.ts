@@ -94,6 +94,25 @@ export const createGlobalStyles = (colorScheme: ColorSchemeName) => {
       backgroundColor: theme.secondaryBackground,
       borderRadius: 8,
       color: theme.text,
+      borderColor: theme.borderColor,
+      borderWidth: 1,
+      elevation: 2,
+      shadowColor: theme.text,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.22,
+      shadowRadius: 2.22,
+    },
+    locationContainer: {
+      marginTop: 15,
+      padding: 10,
+      backgroundColor: theme.secondaryBackground,
+      borderRadius: 8,
+      alignItems: "center",
+    },
+    locationText: {
+      fontSize: 14,
+      color: theme.text,
+      marginBottom: 10,
     },
     label: {
       fontSize: 16,
@@ -134,12 +153,6 @@ export const createGlobalStyles = (colorScheme: ColorSchemeName) => {
       alignItems: "center",
       padding: 20,
       paddingBottom: 50,
-    },
-    locationText: {
-      fontSize: 14,
-      color: "gray",
-      marginTop: 15,
-      fontStyle: "italic",
     },
   });
 };

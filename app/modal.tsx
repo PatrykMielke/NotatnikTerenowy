@@ -1,13 +1,12 @@
 // app/modal.tsx
 import { LocationCoords } from "@/types";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Crypto from "expo-crypto";
-import * as ImagePicker from "expo-image-picker";
-import * as Location from "expo-location";
+import getLocation from "@/utils/getLocation";
+import pickImage from "@/utils/pickImage";
+import saveNote from "@/utils/saveNote";
+import takePhoto from "@/utils/takePhoto";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  Alert,
   Button,
   Image,
   KeyboardAvoidingView,
@@ -30,98 +29,29 @@ export default function ModalScreen() {
   const [location, setLocation] = useState<LocationCoords | null>(null);
   const router = useRouter(); // Hook do nawigacji, aby zamknąć modal
 
-  const getLocation = async () => {
-    let { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert(
-        "Brak uprawnień",
-        "Potrzebujemy dostępu do lokalizacji, aby zapisać pozycję notatki."
-      );
-      return;
-    }
-
-    try {
-      let currentLocation = await Location.getCurrentPositionAsync({});
-      setLocation(currentLocation.coords);
-      Alert.alert(
-        "Lokalizacja pobrana!",
-        "Twoje współrzędne zostały zapisane."
-      );
-    } catch (error) {
-      Alert.alert(
-        "Błąd lokalizacji",
-        "Nie udało się pobrać lokalizacji. Spróbuj ponownie."
-      );
-      console.log(error);
+  const handleGetLocation = async () => {
+    const coords = await getLocation();
+    if (coords) {
+      setLocation(coords);
     }
   };
 
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("Brak uprawnień", "Potrzebujemy dostępu do Twojej galerii.");
-      return;
-    }
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
-      await getLocation();
-    }
+  const handleClearLocation = () => {
+    setLocation(null);
   };
 
-  const takePhoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("Brak uprawnień", "Potrzebujemy dostępu do aparatu.");
-      return;
-    }
-    let result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
-      await getLocation();
-    }
+  const handlePickImage = async () => {
+    await pickImage(setImage);
+    handleGetLocation();
+  };
+
+  const handleTakePhoto = async () => {
+    await takePhoto(setImage);
+    handleGetLocation();
   };
 
   const handleSaveNote = async () => {
-    if (!image || !title) {
-      Alert.alert("Błąd", "Zdjęcie i tytuł są wymagane!");
-      return;
-    }
-
-    try {
-      const newNote = {
-        id: Crypto.randomUUID(),
-        title,
-        description,
-        image,
-        date: new Date().toISOString(),
-        location: location,
-      };
-
-      const existingNotesRaw = await AsyncStorage.getItem("notes");
-      const existingNotes = existingNotesRaw
-        ? JSON.parse(existingNotesRaw)
-        : [];
-
-      const updatedNotes = [...existingNotes, newNote];
-
-      await AsyncStorage.setItem("notes", JSON.stringify(updatedNotes));
-
-      Alert.alert("Sukces!", "Notatka została zapisana.");
-      router.back();
-    } catch (e) {
-      console.error(e);
-      Alert.alert("Błąd", "Nie udało się zapisać notatki.");
-    }
+    await saveNote(image, title, description, location);
   };
 
   return (
@@ -142,17 +72,26 @@ export default function ModalScreen() {
         )}
 
         <View style={styles.buttonContainer}>
-          <Button title="Wybierz zdjęcie z galerii" onPress={pickImage} />
+          <Button title="Wybierz zdjęcie z galerii" onPress={handlePickImage} />
           <View style={{ marginVertical: 5 }} />
-          <Button title="Zrób zdjęcie" onPress={takePhoto} />
+          <Button title="Zrób zdjęcie" onPress={handleTakePhoto} />
+          <View style={{ marginVertical: 5 }} />
+          {location ? (
+            <>
+              <Text style={styles.locationText}>
+                Lokalizacja: {location.latitude.toFixed(4)},{" "}
+                {location.longitude.toFixed(4)}
+              </Text>
+              <Button
+                title="Usuń lokalizację"
+                onPress={handleClearLocation}
+                color="red"
+              />
+            </>
+          ) : (
+            <Button title="Dodaj lokalizację" onPress={handleGetLocation} />
+          )}
         </View>
-
-        {location && (
-          <Text style={styles.locationText}>
-            Lokalizacja: {location.latitude.toFixed(4)},{" "}
-            {location.longitude.toFixed(4)}
-          </Text>
-        )}
 
         <TextInput
           value={title}

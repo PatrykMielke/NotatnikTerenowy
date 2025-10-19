@@ -1,4 +1,5 @@
 // app/modal.tsx
+import { LocationCoords } from "@/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Crypto from "expo-crypto";
 import * as ImagePicker from "expo-image-picker";
@@ -17,11 +18,6 @@ import {
   TextInput,
   View,
 } from "react-native";
-
-interface LocationCoords {
-  latitude: number;
-  longitude: number;
-}
 
 export default function ModalScreen() {
   const [image, setImage] = useState<string | null>(null);

@@ -1,35 +1,34 @@
+import { Note } from "@/types";
+import makePhoneCall from "@/utils/makePhoneCall";
+import sendSms from "@/utils/sendNoteSms";
+import shareNote from "@/utils/shareNote";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack, useLocalSearchParams } from "expo-router";
-import * as SMS from "expo-sms";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Button,
   Image,
-  Linking,
   ScrollView,
-  Share,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-interface Note {
-  id: string;
-  title: string;
-  description?: string;
-  image: string;
-  date: string;
-  location?: {
-    latitude: number;
-    longitude: number;
-  };
-}
-
 export default function NoteDetailsScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>(); // Get the 'id' from the URL
+  const { id } = useLocalSearchParams<{ id: string }>();
   const [note, setNote] = useState<Note | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const handleSendSms = async () => {
+    await sendSms(note!);
+  };
+  const handlePhoneCall = async () => {
+    await makePhoneCall();
+  };
+
+  const handleShareNote = async () => {
+    await shareNote(note!);
+  };
 
   useEffect(() => {
     const loadNote = async () => {
@@ -48,84 +47,9 @@ export default function NoteDetailsScreen() {
 
     loadNote();
   }, [id]);
-
   if (loading) {
     return <ActivityIndicator size="large" style={styles.centered} />;
   }
-
-  const sendSms = async () => {
-    if (!note) return;
-
-    const isAvailable = await SMS.isAvailableAsync();
-    if (!isAvailable) {
-      Alert.alert("Błąd", "Usługa SMS nie jest dostępna na tym urządzeniu.");
-      return;
-    }
-
-    try {
-      const phoneNumber = await AsyncStorage.getItem("settings_phone");
-      const messageTemplate = await AsyncStorage.getItem(
-        "settings_sms_message"
-      );
-
-      if (!phoneNumber) {
-        Alert.alert(
-          "Brak numeru",
-          "Najpierw skonfiguruj domyślny numer telefonu w ustawieniach."
-        );
-        return;
-      }
-
-      let message = messageTemplate || "Zgłaszam problem.";
-      if (note.location) {
-        const locationString = `${note.location.latitude.toFixed(
-          5
-        )}, ${note.location.longitude.toFixed(5)}`;
-        message = `${message}\n\nLokalizacja:${locationString}")`;
-      }
-
-      const { result } = await SMS.sendSMSAsync([phoneNumber], message);
-      console.log("Wynik wysłania SMS:", result);
-    } catch (e) {
-      Alert.alert("Błąd", "Nie udało się przygotować wiadomości SMS.");
-      console.error(e);
-    }
-  };
-
-  const shareNote = async () => {
-    if (!note) return;
-    try {
-      let message = `Sprawdź moją notatkę: "${note.title}" z dnia ${note.date}`;
-
-      if (note.description) {
-        message += `\n\n${note.description}`;
-      }
-      if (note.location) {
-        message += `\n\nLokalizacja: https://www.google.com/maps?q=${note.location.latitude},${note.location.longitude}`;
-      }
-      await Share.share({
-        message: message,
-        title: note.title,
-      });
-    } catch (error) {
-      Alert.alert("Błąd", "Nie udało się udostępnić notatki.");
-    }
-  };
-
-  const makePhoneCall = async () => {
-    const phoneNumber = "112";
-    const url = `tel:${phoneNumber}`;
-
-    try {
-      await Linking.openURL(url);
-    } catch (error) {
-      Alert.alert(
-        "Błąd",
-        "Nie można otworzyć aplikacji do wykonywania połączeń."
-      );
-      console.error("Błąd podczas próby otwarcia dialera:", error);
-    }
-  };
 
   if (!note) {
     return (
@@ -159,18 +83,18 @@ export default function NoteDetailsScreen() {
           </View>
         ) : null}
         <View style={styles.actionsContainer}>
-          <Button title="Udostępnij notatkę" onPress={shareNote} />
+          <Button title="Udostępnij notatkę" onPress={handleShareNote} />
 
           <View style={{ marginVertical: 8 }} />
           <Button
             title="Wyślij zgłoszenie SMS"
-            onPress={sendSms}
+            onPress={handleSendSms}
             color="#ff8c00"
           />
           <View style={{ marginVertical: 8 }} />
           <Button
             title="Zadzwoń i zgłoś (112)"
-            onPress={makePhoneCall}
+            onPress={handlePhoneCall}
             color="#c41c1c"
           />
         </View>

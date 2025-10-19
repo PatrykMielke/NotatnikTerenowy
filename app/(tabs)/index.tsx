@@ -1,3 +1,4 @@
+import { NotePreview } from "@/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Link, Stack, useFocusEffect } from "expo-router";
 import React, { useCallback, useState } from "react";
@@ -10,15 +11,8 @@ import {
   View,
 } from "react-native";
 
-interface Note {
-  id: string;
-  title: string;
-  image: string;
-  date: string;
-}
-
 export default function HomeScreen() {
-  const [notes, setNotes] = useState<Note[]>([]);
+  const [notes, setNotes] = useState<NotePreview[]>([]);
 
   const loadNotes = async () => {
     try {

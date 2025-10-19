@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack, useLocalSearchParams } from "expo-router";
+import * as SMS from "expo-sms";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -13,7 +14,6 @@ import {
   Text,
   View,
 } from "react-native";
-
 interface Note {
   id: string;
   title: string;
@@ -52,10 +52,54 @@ export default function NoteDetailsScreen() {
   if (loading) {
     return <ActivityIndicator size="large" style={styles.centered} />;
   }
+
+  const sendSms = async () => {
+    if (!note) return;
+
+    const isAvailable = await SMS.isAvailableAsync();
+    if (!isAvailable) {
+      Alert.alert("Błąd", "Usługa SMS nie jest dostępna na tym urządzeniu.");
+      return;
+    }
+
+    try {
+      const phoneNumber = await AsyncStorage.getItem("settings_phone");
+      const messageTemplate = await AsyncStorage.getItem(
+        "settings_sms_message"
+      );
+
+      if (!phoneNumber) {
+        Alert.alert(
+          "Brak numeru",
+          "Najpierw skonfiguruj domyślny numer telefonu w ustawieniach."
+        );
+        return;
+      }
+
+      let message = messageTemplate || "Zgłaszam problem.";
+      if (note.location) {
+        const locationString = `${note.location.latitude.toFixed(
+          5
+        )}, ${note.location.longitude.toFixed(5)}`;
+        message = `${message}\n\nLokalizacja:${locationString}")`;
+      }
+
+      const { result } = await SMS.sendSMSAsync([phoneNumber], message);
+      console.log("Wynik wysłania SMS:", result);
+    } catch (e) {
+      Alert.alert("Błąd", "Nie udało się przygotować wiadomości SMS.");
+      console.error(e);
+    }
+  };
+
   const shareNote = async () => {
     if (!note) return;
     try {
-      let message = `Sprawdź moją notatkę: "${note.title}"`;
+      let message = `Sprawdź moją notatkę: "${note.title}" z dnia ${note.date}`;
+
+      if (note.description) {
+        message += `\n\n${note.description}`;
+      }
       if (note.location) {
         message += `\n\nLokalizacja: https://www.google.com/maps?q=${note.location.latitude},${note.location.longitude}`;
       }
@@ -68,23 +112,19 @@ export default function NoteDetailsScreen() {
     }
   };
 
-  const makePhoneCall = () => {
-    // Numer telefonu, który można przenieść do ustawień
+  const makePhoneCall = async () => {
     const phoneNumber = "112";
     const url = `tel:${phoneNumber}`;
 
-    Linking.canOpenURL(url)
-      .then((supported) => {
-        if (!supported) {
-          Alert.alert(
-            "Błąd",
-            "Wykonywanie połączeń nie jest wspierane na tym urządzeniu."
-          );
-        } else {
-          return Linking.openURL(url);
-        }
-      })
-      .catch((err) => console.error("Wystąpił błąd", err));
+    try {
+      await Linking.openURL(url);
+    } catch (error) {
+      Alert.alert(
+        "Błąd",
+        "Nie można otworzyć aplikacji do wykonywania połączeń."
+      );
+      console.error("Błąd podczas próby otwarcia dialera:", error);
+    }
   };
 
   if (!note) {
@@ -120,6 +160,13 @@ export default function NoteDetailsScreen() {
         ) : null}
         <View style={styles.actionsContainer}>
           <Button title="Udostępnij notatkę" onPress={shareNote} />
+
+          <View style={{ marginVertical: 8 }} />
+          <Button
+            title="Wyślij zgłoszenie SMS"
+            onPress={sendSms}
+            color="#ff8c00"
+          />
           <View style={{ marginVertical: 8 }} />
           <Button
             title="Zadzwoń i zgłoś (112)"
